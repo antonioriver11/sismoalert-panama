@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070a10">
+  <meta name="description" content="SismoAlert Panamá - monitoreo sísmico regional.">
+  <link rel="manifest" href="./manifest.json">
+  <title>SismoAlert Panamá 🇵🇦</title>
+  <style>
+    :root{--bg:#070a10;--panel:#101620;--panel2:#151d29;--text:#f5f7fa;--muted:#8994a6;--border:#26303e;--green:#36e083;--yellow:#f5c84b;--red:#ff4d5e;--blue:#4da3ff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+    button,input,select{font:inherit}.app{max-width:520px;margin:auto;padding:18px;min-height:100vh}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:10px}.brand-icon{font-size:30px}.brand-name{font-size:20px;font-weight:800}.brand-sub{color:var(--muted);font-size:12px;margin-top:2px}
+    .status{padding:7px 10px;border-radius:999px;background:#10311f;color:var(--green);font-size:11px;font-weight:700;white-space:nowrap}
+    .hero{margin-top:20px;padding:24px;border:1px solid var(--border);border-radius:24px;background:var(--panel);text-align:center}.hero-earth{font-size:64px}.hero h1{margin:8px 0;font-size:27px}.hero p{margin:0;color:var(--muted)}
+    .system-state{margin-top:18px;display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;background:#102c1d;color:var(--green);font-size:13px;font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:17px;margin-top:12px}
+    .metric-label{color:var(--muted);font-size:12px}.metric-value{font-size:23px;font-weight:800;margin-top:5px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px}h2,h3{margin:0}.refresh{color:var(--blue);font-size:12px;text-align:right}
+    .event{padding:15px 0;border-bottom:1px solid var(--border)}.event:last-child{border-bottom:0}.event-top{display:flex;justify-content:space-between;gap:12px}.event-place{font-weight:700}.magnitude{font-weight:900;font-size:17px;white-space:nowrap}
+    .event-info{color:var(--muted);font-size:12px;margin-top:6px;line-height:1.5}.badge{display:inline-block;margin-top:8px;padding:5px 8px;border-radius:7px;font-size:10px;font-weight:800}.normal{background:#18212d;color:var(--muted)}.watch{background:#352c12;color:var(--yellow)}.danger{background:#39151b;color:var(--red)}
+    .empty{color:var(--muted);text-align:center;padding:25px 5px;font-size:13px}.controls{display:grid;gap:13px}label{display:block;color:var(--muted);font-size:12px}
+    input,select{width:100%;margin-top:6px;padding:12px;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:12px;outline:none}
+    button{width:100%;padding:13px;border:0;border-radius:13px;font-weight:800;cursor:pointer}button:disabled{opacity:.6}.primary{background:var(--blue);color:white}.secondary{background:var(--panel2);border:1px solid var(--border);color:var(--text)}
+    .footer{text-align:center;color:var(--muted);font-size:10px;line-height:1.5;padding:25px 5px}
+    .alert-screen{display:none;position:fixed;inset:0;z-index:9999;background:#7e101d;padding:28px;text-align:center;align-items:center;justify-content:center}
+    .alert-content{max-width:420px;width:100%}.alert-icon{font-size:80px}.alert-screen h1{font-size:38px;margin:10px 0}.alert-screen p{font-size:17px;line-height:1.5}
+    .alert-data{background:rgba(0,0,0,.2);border-radius:18px;padding:18px;margin:20px 0}.alert-screen button{background:white;color:#7e101d}
+    @media(max-width:360px){.grid{grid-template-columns:1fr}.hero h1{font-size:23px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div class="brand"><div class="brand-icon">🌎</div><div><div class="brand-name">SismoAlert</div><div class="brand-sub">Monitoreo sísmico · Panamá 🇵🇦</div></div></div>
+    <div class="status">● ACTIVO</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-earth">🌎</div>
+    <h1>Panamá protegido</h1>
+    <p>Vigilando eventos sísmicos de la región.</p>
+    <div class="system-state">🟢 Sistema funcionando</div>
+  </section>
+
+  <div class="grid">
+    <div class="card"><div class="metric-label">Eventos regionales · 24 h</div><div class="metric-value" id="eventCount">—</div></div>
+    <div class="card"><div class="metric-label">Mayor magnitud</div><div class="metric-value" id="largestMagnitude">—</div></div>
+  </div>
+
+  <section class="card">
+    <div class="section-title"><h2>🌎 Eventos recientes</h2><span class="refresh" id="lastUpdate">Actualizando...</span></div>
+    <div id="events"><div class="empty">Cargando información sísmica...</div></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title"><h2>⚙️ Alertas</h2></div>
+    <div class="controls">
+      <label>Magnitud mínima para vigilancia
+        <input id="minMagnitude" type="number" value="4.5" min="1" max="9" step="0.1">
+      </label>
+      <label>Radio regional alrededor de Panamá
+        <select id="radius">
+          <option value="500">500 km</option>
+          <option value="800" selected>800 km</option>
+          <option value="1000">1000 km</option>
+          <option value="1200">1200 km</option>
+        </select>
+      </label>
+      <button class="primary" id="notifications">🔔 Activar notificaciones</button>
+      <button class="secondary" id="testNotification">📳 Probar notificación</button>
+      <button class="secondary" id="testAlert">🚨 Probar alerta completa</button>
+    </div>
+  </section>
+
+  <div class="footer">
+    Datos sísmicos: USGS Earthquake Hazards Program.<br>
+    Prototipo independiente. No sustituye sistemas oficiales de emergencia.
+  </div>
+</main>
+
+<div class="alert-screen" id="alertScreen">
+  <div class="alert-content">
+    <div class="alert-icon">🚨</div>
+    <h1>ALERTA SÍSMICA</h1>
+    <p id="alertMessage">Se detectó un evento sísmico relevante.</p>
+    <div class="alert-data">
+      <div><strong>Magnitud</strong><div id="alertMagnitude">—</div></div><br>
+      <div><strong>Ubicación</strong><div id="alertLocation">—</div></div><br>
+      <div><strong>Distancia aproximada</strong><div id="alertDistance">—</div></div>
+    </div>
+    <button id="closeAlert">ENTENDIDO</button>
+  </div>
+</div>
+
+<script>
+const PANAMA_LAT=8.9824,PANAMA_LON=-79.5199;
+const USGS_URL="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+const eventsContainer=document.getElementById("events"),eventCount=document.getElementById("eventCount"),largestMagnitude=document.getElementById("largestMagnitude"),lastUpdate=document.getElementById("lastUpdate"),minMagnitude=document.getElementById("minMagnitude"),radius=document.getElementById("radius"),alertScreen=document.getElementById("alertScreen");
+let serviceWorkerRegistration=null,notifiedEventIds=new Set();
+
+function distanceKm(lat1,lon1,lat2,lon2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2,c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c}
+function formatDateTime(timestamp){return new Date(timestamp).toLocaleString("es-PA",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function getSeverity(m,d){const min=Number(minMagnitude.value);if(m>=6&&d<=Number(radius.value))return"danger";if(m>=min&&d<=Number(radius.value))return"watch";return"normal"}
+function severityText(s){return s==="danger"?"⚠️ EVENTO IMPORTANTE":s==="watch"?"🟡 EN VIGILANCIA":"Evento registrado"}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+async function showSystemNotification(title,body,tag="sismoalert"){
+  if(!serviceWorkerRegistration)return false;
+  try{
+    await serviceWorkerRegistration.showNotification(title,{body,tag,requireInteraction:true,vibrate:[500,200,500,200,800],renotify:true});
+    return true;
+  }catch(e){console.error("Notificación:",e);return false}
+}
+
+async function requestNotifications(){
+  if(!("Notification"in window)){alert("Este navegador no permite notificaciones web.");return}
+  const permission=await Notification.requestPermission();
+  if(permission!=="granted"){alert("❌ Las notificaciones no fueron permitidas.");return}
+  await showSystemNotification("🌎 SismoAlert Panamá","🔔 ¡Las notificaciones están funcionando!","permission-test");
+  document.getElementById("notifications").textContent="✅ Notificaciones activadas";
+}
+
+function playAlarm(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+    const a=new C(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();
+    setTimeout(()=>{o.stop();a.close()},700);
+  }catch(e){}
+}
+
+async function showAlert(event,isTest=false){
+  const p=event.properties,c=event.geometry.coordinates,m=Number(p.mag).toFixed(1),loc=p.place||"Ubicación desconocida",d=distanceKm(PANAMA_LAT,PANAMA_LON,c[1],c[0]);
+  document.getElementById("alertMagnitude").textContent="M "+m;
+  document.getElementById("alertLocation").textContent=loc;
+  document.getElementById("alertDistance").textContent=Math.round(d)+" km";
+  document.getElementById("alertMessage").textContent=isTest?"Simulación de SismoAlert. En la versión Android el servidor podrá enviar alertas aunque la app no esté abierta.":"Se detectó un evento que supera los criterios de vigilancia configurados.";
+  alertScreen.style.display="flex";playAlarm();
+  if(Notification.permission==="granted")await showSystemNotification("🚨 ALERTA SÍSMICA · SismoAlert",`M ${m} · ${loc}`,"sismo-"+(event.id||Date.now()));
+}
+
+async function checkForAlerts(events){
+  if(Notification.permission!=="granted")return;
+  const min=Number(minMagnitude.value),maxD=Number(radius.value);
+  for(const e of events){
+    if(!e.id||notifiedEventIds.has(e.id))continue;
+    const m=Number(e.properties.mag),c=e.geometry.coordinates,d=distanceKm(PANAMA_LAT,PANAMA_LON,c[1],c[0]);
+    if(m>=min&&d<=maxD){
+      notifiedEventIds.add(e.id);
+      await showSystemNotification("⚠️ Sismo relevante · SismoAlert",`M ${m.toFixed(1)} · ${e.properties.place||"Evento sísmico"}`,"sismo-"+e.id);
+    }
+  }
+  if(notifiedEventIds.size>100)notifiedEventIds=new Set([...notifiedEventIds].slice(-50));
+}
+
+function renderEvents(data){
+  const all=data.features.filter(e=>e.properties&&e.properties.mag!==null&&e.geometry).sort((a,b)=>b.properties.time-a.properties.time);
+  const regional=all.filter(e=>distanceKm(PANAMA_LAT,PANAMA_LON,e.geometry.coordinates[1],e.geometry.coordinates[0])<=Number(radius.value));
+  eventCount.textContent=regional.length;
+  largestMagnitude.textContent=regional.length?"M "+Math.max(...regional.map(e=>Number(e.properties.mag))).toFixed(1):"—";
+  eventsContainer.innerHTML="";
+  if(!regional.length){eventsContainer.innerHTML='<div class="empty">No hay eventos dentro del radio seleccionado.</div>';return}
+  regional.slice(0,20).forEach(e=>{
+    const p=e.properties,c=e.geometry.coordinates,m=Number(p.mag),d=distanceKm(PANAMA_LAT,PANAMA_LON,c[1],c[0]),s=getSeverity(m,d),item=document.createElement("div");item.className="event";
+    item.innerHTML=`<div class="event-top"><div class="event-place">${escapeHtml(p.place||"Ubicación desconocida")}</div><div class="magnitude">M ${m.toFixed(1)}</div></div><div class="event-info">📏 ${Math.round(d)} km de Panamá<br>🕐 ${formatDateTime(p.time)}</div><div class="badge ${s}">${severityText(s)}</div>`;
+    eventsContainer.appendChild(item);
+  });
+  checkForAlerts(regional);
+}
+
+async function loadEarthquakes(){
+  try{
+    lastUpdate.textContent="Actualizando...";
+    const r=await fetch(USGS_URL,{cache:"no-store"});if(!r.ok)throw new Error("USGS no disponible");
+    renderEvents(await r.json());
+    lastUpdate.textContent="Actualizado "+new Date().toLocaleTimeString("es-PA",{hour:"2-digit",minute:"2-digit"});
+  }catch(e){console.error(e);eventsContainer.innerHTML='<div class="empty">⚠️ No se pudo actualizar la información sísmica.<br><br>Revisa tu conexión.</div>';lastUpdate.textContent="Sin conexión"}
+}
+
+async function registerServiceWorker(){
+  if(!("serviceWorker"in navigator))return;
+  try{serviceWorkerRegistration=await navigator.serviceWorker.register("./sw.js");await navigator.serviceWorker.ready}catch(e){console.error("Service Worker:",e)}
+}
+
+document.getElementById("notifications").onclick=requestNotifications;
+document.getElementById("testNotification").onclick=async()=>{
+  if(Notification.permission!=="granted"){await requestNotifications();return}
+  await showSystemNotification("📳 Prueba de SismoAlert","Si ves esto, la notificación funciona.","manual-test");
+};
+document.getElementById("testAlert").onclick=()=>showAlert({id:"test-"+Date.now(),properties:{mag:6.2,place:"Evento de prueba — Colombia",time:Date.now()},geometry:{coordinates:[-74.1,6.2,30]}},true);
+document.getElementById("closeAlert").onclick=()=>alertScreen.style.display="none";
+minMagnitude.onchange=loadEarthquakes;
+radius.onchange=loadEarthquakes;
+
+registerServiceWorker().then(loadEarthquakes);
+setInterval(loadEarthquakes,60000);
+</script>
+</body>
+</html>
