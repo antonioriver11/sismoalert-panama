@@ -1,0 +1,11 @@
+{
+  "name":"SismoAlert Panamá",
+  "short_name":"SismoAlert",
+  "description":"Monitoreo sísmico regional para Panamá.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#070a10",
+  "theme_color":"#070a10",
+  "lang":"es"
+}
