@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b12">
-
+  <meta name="theme-color" content="#070a10">
+  <meta name="description" content="SismoAlert Panamá - monitoreo sísmico regional.">
+  <link rel="manifest" href="manifest.json">
   <title>SismoAlert Panamá 🇵🇦</title>
 
   <style>
@@ -21,22 +22,16 @@
       --blue: #4da3ff;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: Inter, Arial, sans-serif;
+      font-family: Arial, sans-serif;
     }
 
-    button,
-    input,
-    select {
-      font: inherit;
-    }
+    button, input, select { font: inherit; }
 
     .app {
       max-width: 520px;
@@ -58,9 +53,7 @@
       gap: 10px;
     }
 
-    .brand-icon {
-      font-size: 30px;
-    }
+    .brand-icon { font-size: 30px; }
 
     .brand-name {
       font-size: 20px;
@@ -88,13 +81,11 @@
       padding: 24px;
       border: 1px solid var(--border);
       border-radius: 24px;
-      background: linear-gradient(145deg, var(--panel), #0c1119);
+      background: var(--panel);
       text-align: center;
     }
 
-    .hero-earth {
-      font-size: 64px;
-    }
+    .hero-earth { font-size: 64px; }
 
     .hero h1 {
       margin: 8px 0;
@@ -152,14 +143,12 @@
       gap: 10px;
     }
 
-    h2,
-    h3 {
-      margin: 0;
-    }
+    h2, h3 { margin: 0; }
 
     .refresh {
       color: var(--blue);
       font-size: 12px;
+      text-align: right;
     }
 
     .event {
@@ -167,9 +156,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .event:last-child {
-      border-bottom: 0;
-    }
+    .event:last-child { border-bottom: 0; }
 
     .event-top {
       display: flex;
@@ -177,13 +164,12 @@
       gap: 12px;
     }
 
-    .event-place {
-      font-weight: 700;
-    }
+    .event-place { font-weight: 700; }
 
     .magnitude {
       font-weight: 900;
       font-size: 17px;
+      white-space: nowrap;
     }
 
     .event-info {
@@ -235,8 +221,7 @@
       font-size: 12px;
     }
 
-    input,
-    select {
+    input, select {
       width: 100%;
       margin-top: 6px;
       padding: 12px;
@@ -256,6 +241,11 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .primary {
       background: var(--blue);
       color: white;
@@ -267,10 +257,6 @@
       color: var(--text);
     }
 
-    .test {
-      margin-top: 10px;
-    }
-
     .footer {
       text-align: center;
       color: var(--muted);
@@ -278,8 +264,6 @@
       line-height: 1.5;
       padding: 25px 5px;
     }
-
-    /* ALERTA */
 
     .alert-screen {
       display: none;
@@ -298,9 +282,7 @@
       width: 100%;
     }
 
-    .alert-icon {
-      font-size: 80px;
-    }
+    .alert-icon { font-size: 80px; }
 
     .alert-screen h1 {
       font-size: 38px;
@@ -325,699 +307,476 @@
     }
 
     @media (max-width: 360px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hero h1 {
-        font-size: 23px;
-      }
+      .grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 23px; }
     }
   </style>
 </head>
 
 <body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🌎</div>
+        <div>
+          <div class="brand-name">SismoAlert</div>
+          <div class="brand-sub">Monitoreo sísmico · Panamá 🇵🇦</div>
+        </div>
+      </div>
+      <div class="status">● ACTIVO</div>
+    </header>
 
-<div class="app">
+    <section class="hero">
+      <div class="hero-earth">🌎</div>
+      <h1>Panamá protegido</h1>
+      <p>Analizando eventos sísmicos regionales.</p>
+      <div class="system-state">🟢 Sistema funcionando</div>
+    </section>
 
-  <header>
-    <div class="brand">
-      <div class="brand-icon">🌎</div>
-      <div>
-        <div class="brand-name">SismoAlert</div>
-        <div class="brand-sub">Monitoreo sísmico · Panamá 🇵🇦</div>
+    <div class="grid">
+      <div class="card">
+        <div class="metric-label">Eventos últimos 24 h</div>
+        <div class="metric-value" id="eventCount">—</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">Mayor magnitud</div>
+        <div class="metric-value" id="largestMagnitude">—</div>
       </div>
     </div>
 
-    <div class="status">● ACTIVO</div>
-  </header>
+    <section class="card">
+      <div class="section-title">
+        <h2>🌎 Eventos recientes</h2>
+        <span class="refresh" id="lastUpdate">Actualizando...</span>
+      </div>
+      <div id="events">
+        <div class="empty">Cargando información sísmica...</div>
+      </div>
+    </section>
 
+    <section class="card">
+      <div class="section-title">
+        <h2>⚙️ Configuración</h2>
+      </div>
 
-  <section class="hero">
+      <div class="controls">
+        <label>
+          Magnitud mínima para vigilancia
+          <input id="minMagnitude" type="number" value="4.5" min="1" max="9" step="0.1">
+        </label>
 
-    <div class="hero-earth">🌎</div>
+        <label>
+          Radio de vigilancia alrededor de Panamá
+          <select id="radius">
+            <option value="300">300 km</option>
+            <option value="500" selected>500 km</option>
+            <option value="800">800 km</option>
+            <option value="1200">1200 km</option>
+          </select>
+        </label>
 
-    <h1>Panamá protegido</h1>
+        <button class="primary" id="notifications">🔔 Activar notificaciones</button>
+        <button class="secondary" id="testNotification">📳 Probar notificación</button>
+        <button class="secondary" id="testAlert">🚨 Probar alerta completa</button>
+      </div>
+    </section>
 
-    <p>
-      Analizando eventos sísmicos regionales.
-    </p>
-
-    <div class="system-state">
-      🟢 Sistema funcionando
+    <div class="footer">
+      Datos sísmicos: USGS Earthquake Hazards Program.<br>
+      Prototipo independiente. No sustituye sistemas oficiales de emergencia.
     </div>
+  </main>
 
-  </section>
+  <div class="alert-screen" id="alertScreen">
+    <div class="alert-content">
+      <div class="alert-icon">🚨</div>
+      <h1>ALERTA SÍSMICA</h1>
+      <p id="alertMessage">Se detectó un evento sísmico relevante.</p>
 
+      <div class="alert-data">
+        <div><strong>Magnitud</strong><div id="alertMagnitude">—</div></div>
+        <br>
+        <div><strong>Ubicación</strong><div id="alertLocation">—</div></div>
+        <br>
+        <div><strong>Distancia aproximada</strong><div id="alertDistance">—</div></div>
+      </div>
 
-  <div class="grid">
-
-    <div class="card">
-      <div class="metric-label">Eventos hoy</div>
-      <div class="metric-value" id="eventCount">—</div>
+      <button id="closeAlert">ENTENDIDO</button>
     </div>
-
-    <div class="card">
-      <div class="metric-label">Mayor magnitud</div>
-      <div class="metric-value" id="largestMagnitude">—</div>
-    </div>
-
   </div>
 
+  <script>
+    const PANAMA_LAT = 8.9824;
+    const PANAMA_LON = -79.5199;
 
-  <section class="card">
+    const USGS_URL =
+      "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
 
-    <div class="section-title">
-      <h2>🌎 Eventos recientes</h2>
-      <span class="refresh" id="lastUpdate">Actualizando...</span>
-    </div>
+    const eventsContainer = document.getElementById("events");
+    const eventCount = document.getElementById("eventCount");
+    const largestMagnitude = document.getElementById("largestMagnitude");
+    const lastUpdate = document.getElementById("lastUpdate");
+    const minMagnitude = document.getElementById("minMagnitude");
+    const radius = document.getElementById("radius");
+    const alertScreen = document.getElementById("alertScreen");
 
-    <div id="events">
-      <div class="empty">
-        Cargando información sísmica...
-      </div>
-    </div>
+    let serviceWorkerRegistration = null;
+    let notifiedEventIds = new Set();
 
-  </section>
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
 
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
 
-  <section class="card">
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
 
-    <div class="section-title">
-      <h2>⚙️ Configuración</h2>
-    </div>
-
-    <div class="controls">
-
-      <label>
-        Magnitud mínima para vigilancia
-        <input
-          id="minMagnitude"
-          type="number"
-          value="4.5"
-          min="1"
-          max="9"
-          step="0.1"
-        >
-      </label>
-
-      <label>
-        Radio de vigilancia alrededor de Panamá
-        <select id="radius">
-          <option value="300">300 km</option>
-          <option value="500" selected>500 km</option>
-          <option value="800">800 km</option>
-          <option value="1200">1200 km</option>
-        </select>
-      </label>
-
-      <button class="primary" id="notifications">
-        🔔 Activar notificaciones
-      </button>
-
-      <button class="secondary" id="testAlert">
-        🚨 Probar alerta
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <div class="footer">
-    Datos sísmicos: USGS Earthquake Hazards Program.<br>
-    Esta aplicación es un prototipo independiente y no sustituye
-    los sistemas oficiales de emergencia.
-  </div>
-
-</div>
-
-
-<!-- PANTALLA DE ALERTA -->
-
-<div class="alert-screen" id="alertScreen">
-
-  <div class="alert-content">
-
-    <div class="alert-icon">🚨</div>
-
-    <h1>ALERTA SÍSMICA</h1>
-
-    <p id="alertMessage">
-      Se detectó un evento sísmico relevante.
-    </p>
-
-    <div class="alert-data">
-
-      <div>
-        <strong>Magnitud</strong>
-        <div id="alertMagnitude">—</div>
-      </div>
-
-      <br>
-
-      <div>
-        <strong>Ubicación</strong>
-        <div id="alertLocation">—</div>
-      </div>
-
-      <br>
-
-      <div>
-        <strong>Distancia aproximada</strong>
-        <div id="alertDistance">—</div>
-      </div>
-
-    </div>
-
-    <button id="closeAlert">
-      ENTENDIDO
-    </button>
-
-  </div>
-
-</div>
-
-
-<script>
-
-  /*
-    SismoAlert Panamá
-    Versión prototipo
-
-    Coordenadas aproximadas de Ciudad de Panamá.
-  */
-
-  const PANAMA_LAT = 8.9824;
-  const PANAMA_LON = -79.5199;
-
-  const USGS_URL =
-    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-
-
-  const eventsContainer =
-    document.getElementById("events");
-
-  const eventCount =
-    document.getElementById("eventCount");
-
-  const largestMagnitude =
-    document.getElementById("largestMagnitude");
-
-  const lastUpdate =
-    document.getElementById("lastUpdate");
-
-  const minMagnitude =
-    document.getElementById("minMagnitude");
-
-  const radius =
-    document.getElementById("radius");
-
-  const alertScreen =
-    document.getElementById("alertScreen");
-
-
-  function distanceKm(lat1, lon1, lat2, lon2) {
-
-    const R = 6371;
-
-    const dLat =
-      (lat2 - lat1) * Math.PI / 180;
-
-    const dLon =
-      (lon2 - lon1) * Math.PI / 180;
-
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-
-    const c =
-      2 * Math.atan2(
-        Math.sqrt(a),
-        Math.sqrt(1 - a)
-      );
-
-    return R * c;
-  }
-
-
-  function formatTime(timestamp) {
-
-    return new Date(timestamp).toLocaleString(
-      "es-PA",
-      {
+    function formatTime(timestamp) {
+      return new Date(timestamp).toLocaleString("es-PA", {
         dateStyle: "short",
         timeStyle: "short"
+      });
+    }
+
+    function getSeverity(magnitude, distance) {
+      const minimum = Number(minMagnitude.value);
+
+      if (magnitude >= 6 && distance <= Number(radius.value)) {
+        return "danger";
       }
-    );
-  }
 
+      if (magnitude >= minimum && distance <= Number(radius.value)) {
+        return "watch";
+      }
 
-  function getSeverity(magnitude, distance) {
-
-    const minimum =
-      Number(minMagnitude.value);
-
-    if (
-      magnitude >= 6 &&
-      distance <= Number(radius.value)
-    ) {
-      return "danger";
+      return "normal";
     }
 
-    if (
-      magnitude >= minimum &&
-      distance <= Number(radius.value)
-    ) {
-      return "watch";
+    function severityText(severity) {
+      if (severity === "danger") return "⚠️ EVENTO IMPORTANTE";
+      if (severity === "watch") return "🟡 EN VIGILANCIA";
+      return "Evento registrado";
     }
 
-    return "normal";
-  }
+    async function showSystemNotification(title, body, tag = "sismoalert") {
+      if (!serviceWorkerRegistration) return false;
 
+      try {
+        await serviceWorkerRegistration.showNotification(title, {
+          body,
+          tag,
+          requireInteraction: true,
+          vibrate: [500, 200, 500, 200, 800],
+          renotify: true,
+          icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><text y='100' font-size='100'>🌎</text></svg>"
+        });
+        return true;
+      } catch (error) {
+        console.error("No se pudo mostrar la notificación:", error);
+        return false;
+      }
+    }
 
-  function severityText(severity) {
+    async function requestNotifications() {
+      if (!("Notification" in window)) {
+        alert("Este navegador no permite notificaciones web.");
+        return;
+      }
 
-    if (severity === "danger")
-      return "⚠️ EVENTO IMPORTANTE";
+      const permission = await Notification.requestPermission();
 
-    if (severity === "watch")
-      return "🟡 EN VIGILANCIA";
+      if (permission !== "granted") {
+        alert("❌ Las notificaciones no fueron permitidas.");
+        return;
+      }
 
-    return "Evento registrado";
-  }
+      await showSystemNotification(
+        "🌎 SismoAlert Panamá",
+        "🔔 ¡Las notificaciones están funcionando!",
+        "sismoalert-permission-test"
+      );
 
+      document.getElementById("notifications").textContent =
+        "✅ Notificaciones activadas";
+    }
 
-  function showAlert(event) {
+    function playAlarm() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
 
-    const properties = event.properties;
+        const audio = new AudioContext();
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
 
-    const coords = event.geometry.coordinates;
+        oscillator.connect(gain);
+        gain.connect(audio.destination);
+        oscillator.frequency.value = 880;
+        gain.gain.value = 0.15;
+        oscillator.start();
 
-    const magnitude =
-      Number(properties.mag).toFixed(1);
+        setTimeout(() => {
+          oscillator.stop();
+          audio.close();
+        }, 700);
+      } catch (error) {
+        console.log("Audio no disponible.", error);
+      }
+    }
 
-    const location =
-      properties.place || "Ubicación desconocida";
+    async function showAlert(event, isTest = false) {
+      const properties = event.properties;
+      const coords = event.geometry.coordinates;
 
-    const distance =
-      distanceKm(
+      const magnitude = Number(properties.mag).toFixed(1);
+      const location = properties.place || "Ubicación desconocida";
+      const distance = distanceKm(
         PANAMA_LAT,
         PANAMA_LON,
         coords[1],
         coords[0]
       );
 
-    document.getElementById(
-      "alertMagnitude"
-    ).textContent =
-      "M " + magnitude;
+      document.getElementById("alertMagnitude").textContent = "M " + magnitude;
+      document.getElementById("alertLocation").textContent = location;
+      document.getElementById("alertDistance").textContent =
+        Math.round(distance) + " km";
 
-    document.getElementById(
-      "alertLocation"
-    ).textContent =
-      location;
+      document.getElementById("alertMessage").textContent = isTest
+        ? "Esta es una simulación. En una versión Android real, el servidor enviaría la alerta."
+        : "Se detectó un evento que supera los criterios de vigilancia configurados.";
 
-    document.getElementById(
-      "alertDistance"
-    ).textContent =
-      Math.round(distance) + " km";
+      alertScreen.style.display = "flex";
+      playAlarm();
 
-    document.getElementById(
-      "alertMessage"
-    ).textContent =
-      "Se detectó un evento que supera los criterios de vigilancia configurados.";
-
-    alertScreen.style.display = "flex";
-
-    playAlarm();
-
-    sendNotification(
-      "🚨 SismoAlert Panamá",
-      "Evento sísmico relevante: M " + magnitude
-    );
-  }
-
-
-  function playAlarm() {
-
-    try {
-
-      const AudioContext =
-        window.AudioContext ||
-        window.webkitAudioContext;
-
-      const audio =
-        new AudioContext();
-
-      const oscillator =
-        audio.createOscillator();
-
-      const gain =
-        audio.createGain();
-
-      oscillator.connect(gain);
-      gain.connect(audio.destination);
-
-      oscillator.frequency.value = 880;
-
-      gain.gain.value = 0.15;
-
-      oscillator.start();
-
-      setTimeout(() => {
-        oscillator.stop();
-        audio.close();
-      }, 700);
-
-    } catch (error) {
-
-      console.log(
-        "Audio no disponible."
-      );
-
-    }
-  }
-
-
-  function sendNotification(title, body) {
-
-    if (
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-
-      new Notification(
-        title,
-        {
-          body: body,
-          icon: "🌎"
-        }
-      );
-
-    }
-
-  }
-
-
-  async function requestNotifications() {
-
-    if (!("Notification" in window)) {
-
-      alert(
-        "Este navegador no permite notificaciones."
-      );
-
-      return;
-    }
-
-    const permission =
-      await Notification.requestPermission();
-
-    if (permission === "granted") {
-
-      alert(
-        "🔔 Notificaciones activadas."
-      );
-
-    } else {
-
-      alert(
-        "Las notificaciones no fueron activadas."
-      );
-
-    }
-
-  }
-
-
-  function renderEvents(data) {
-
-    const events =
-      data.features
-        .filter(event => {
-
-          return (
-            event.properties &&
-            event.properties.mag !== null &&
-            event.geometry
-          );
-
-        })
-        .sort(
-          (a, b) =>
-            b.properties.time -
-            a.properties.time
+      if (Notification.permission === "granted") {
+        await showSystemNotification(
+          "🚨 ALERTA SÍSMICA · SismoAlert",
+          `M ${magnitude} · ${location}`,
+          "sismo-" + (event.id || Date.now())
         );
-
-    eventCount.textContent =
-      events.length;
-
-
-    if (events.length > 0) {
-
-      const largest =
-        Math.max(
-          ...events.map(
-            e => Number(e.properties.mag)
-          )
-        );
-
-      largestMagnitude.textContent =
-        "M " + largest.toFixed(1);
-
+      }
     }
 
+    function renderEvents(data) {
+      const events = data.features
+        .filter(event =>
+          event.properties &&
+          event.properties.mag !== null &&
+          event.geometry
+        )
+        .sort((a, b) => b.properties.time - a.properties.time);
 
-    eventsContainer.innerHTML = "";
+      eventCount.textContent = events.length;
 
+      if (events.length) {
+        const largest = Math.max(...events.map(e => Number(e.properties.mag)));
+        largestMagnitude.textContent = "M " + largest.toFixed(1);
+      } else {
+        largestMagnitude.textContent = "—";
+      }
 
-    const relevantEvents =
-      events.slice(0, 15);
+      eventsContainer.innerHTML = "";
 
+      if (!events.length) {
+        eventsContainer.innerHTML =
+          '<div class="empty">No hay eventos disponibles.</div>';
+        return;
+      }
 
-    if (!relevantEvents.length) {
+      events.slice(0, 15).forEach(event => {
+        const properties = event.properties;
+        const coordinates = event.geometry.coordinates;
+        const magnitude = Number(properties.mag);
 
-      eventsContainer.innerHTML =
-        '<div class="empty">No hay eventos disponibles.</div>';
-
-      return;
-
-    }
-
-
-    relevantEvents.forEach(event => {
-
-      const properties =
-        event.properties;
-
-      const coordinates =
-        event.geometry.coordinates;
-
-      const magnitude =
-        Number(properties.mag);
-
-      const distance =
-        distanceKm(
+        const distance = distanceKm(
           PANAMA_LAT,
           PANAMA_LON,
           coordinates[1],
           coordinates[0]
         );
 
-      const severity =
-        getSeverity(
-          magnitude,
-          distance
-        );
+        const severity = getSeverity(magnitude, distance);
+        const item = document.createElement("div");
+        item.className = "event";
 
-
-      const item =
-        document.createElement("div");
-
-      item.className = "event";
-
-
-      item.innerHTML = `
-
-        <div class="event-top">
-
-          <div class="event-place">
-            ${properties.place || "Ubicación desconocida"}
+        item.innerHTML = `
+          <div class="event-top">
+            <div class="event-place">${escapeHtml(properties.place || "Ubicación desconocida")}</div>
+            <div class="magnitude">M ${magnitude.toFixed(1)}</div>
           </div>
-
-          <div class="magnitude">
-            M ${magnitude.toFixed(1)}
+          <div class="event-info">
+            📏 ${Math.round(distance)} km de Panamá<br>
+            🕐 ${formatTime(properties.time)}
           </div>
+          <div class="badge ${severity}">
+            ${severityText(severity)}
+          </div>
+        `;
 
-        </div>
+        eventsContainer.appendChild(item);
+      });
 
-        <div class="event-info">
-
-          📏 ${Math.round(distance)} km de Panamá<br>
-
-          🕐 ${formatTime(properties.time)}
-
-        </div>
-
-        <div class="badge ${severity}">
-          ${severityText(severity)}
-        </div>
-
-      `;
-
-
-      eventsContainer.appendChild(item);
-
-    });
-
-  }
-
-
-  async function loadEarthquakes() {
-
-    try {
-
-      lastUpdate.textContent =
-        "Actualizando...";
-
-
-      const response =
-        await fetch(USGS_URL);
-
-
-      if (!response.ok) {
-
-        throw new Error(
-          "No se pudo obtener información."
-        );
-
-      }
-
-
-      const data =
-        await response.json();
-
-
-      renderEvents(data);
-
-
-      lastUpdate.textContent =
-        "Actualizado " +
-        new Date().toLocaleTimeString(
-          "es-PA",
-          {
-            hour: "2-digit",
-            minute: "2-digit"
-          }
-        );
-
-    } catch (error) {
-
-      console.error(error);
-
-      eventsContainer.innerHTML = `
-        <div class="empty">
-          ⚠️ No se pudo actualizar la información sísmica.
-          <br><br>
-          Revisa tu conexión a Internet.
-        </div>
-      `;
-
-      lastUpdate.textContent =
-        "Sin conexión";
-
+      checkForAlert(events);
     }
 
-  }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
 
+    async function checkForAlert(events) {
+      if (Notification.permission !== "granted") return;
 
-  document
-    .getElementById("notifications")
-    .addEventListener(
+      const minimum = Number(minMagnitude.value);
+      const maxDistance = Number(radius.value);
+
+      for (const event of events) {
+        if (!event.id || notifiedEventIds.has(event.id)) continue;
+
+        const magnitude = Number(event.properties.mag);
+        const coordinates = event.geometry.coordinates;
+
+        const distance = distanceKm(
+          PANAMA_LAT,
+          PANAMA_LON,
+          coordinates[1],
+          coordinates[0]
+        );
+
+        if (magnitude >= minimum && distance <= maxDistance) {
+          notifiedEventIds.add(event.id);
+
+          await showSystemNotification(
+            "⚠️ Sismo relevante · SismoAlert",
+            `M ${magnitude.toFixed(1)} · ${event.properties.place || "Evento sísmico"}`,
+            "sismo-" + event.id
+          );
+        }
+      }
+
+      if (notifiedEventIds.size > 100) {
+        notifiedEventIds =
+          new Set([...notifiedEventIds].slice(-50));
+      }
+    }
+
+    async function loadEarthquakes() {
+      try {
+        lastUpdate.textContent = "Actualizando...";
+
+        const response = await fetch(USGS_URL, {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("No se pudo obtener información.");
+        }
+
+        const data = await response.json();
+        renderEvents(data);
+
+        lastUpdate.textContent =
+          "Actualizado " +
+          new Date().toLocaleTimeString("es-PA", {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+      } catch (error) {
+        console.error(error);
+
+        eventsContainer.innerHTML = `
+          <div class="empty">
+            ⚠️ No se pudo actualizar la información sísmica.<br><br>
+            Revisa tu conexión a Internet.
+          </div>
+        `;
+
+        lastUpdate.textContent = "Sin conexión";
+      }
+    }
+
+    async function registerServiceWorker() {
+      if (!("serviceWorker" in navigator)) {
+        console.warn("Service Worker no disponible.");
+        return;
+      }
+
+      try {
+        serviceWorkerRegistration =
+          await navigator.serviceWorker.register("./sw.js");
+
+        await navigator.serviceWorker.ready;
+
+        console.log("SismoAlert: Service Worker activo.");
+      } catch (error) {
+        console.error("Error registrando Service Worker:", error);
+      }
+    }
+
+    document.getElementById("notifications").addEventListener(
       "click",
       requestNotifications
     );
 
+    document.getElementById("testNotification").addEventListener(
+      "click",
+      async () => {
+        if (Notification.permission !== "granted") {
+          await requestNotifications();
+          return;
+        }
 
-  document
-    .getElementById("testAlert")
-    .addEventListener(
+        await showSystemNotification(
+          "📳 Prueba de SismoAlert",
+          "Si ves esto, la notificación web funciona.",
+          "sismoalert-manual-test"
+        );
+      }
+    );
+
+    document.getElementById("testAlert").addEventListener(
       "click",
       () => {
-
         showAlert({
-
+          id: "test-" + Date.now(),
           properties: {
-
             mag: 6.2,
-
-            place:
-              "Evento de prueba — Colombia",
-
-            time:
-              Date.now()
-
+            place: "Evento de prueba — Colombia",
+            time: Date.now()
           },
-
           geometry: {
-
-            coordinates: [
-
-              -74.1,
-              6.2,
-              30
-
-            ]
-
+            coordinates: [-74.1, 6.2, 30]
           }
-
-        });
-
+        }, true);
       }
     );
 
-
-  document
-    .getElementById("closeAlert")
-    .addEventListener(
+    document.getElementById("closeAlert").addEventListener(
       "click",
       () => {
-
-        alertScreen.style.display =
-          "none";
-
+        alertScreen.style.display = "none";
       }
     );
 
+    minMagnitude.addEventListener("change", loadEarthquakes);
+    radius.addEventListener("change", loadEarthquakes);
 
-  minMagnitude
-    .addEventListener(
-      "change",
-      loadEarthquakes
-    );
+    registerServiceWorker().then(loadEarthquakes);
 
-
-  radius
-    .addEventListener(
-      "change",
-      loadEarthquakes
-    );
-
-
-  // Primera carga
-  loadEarthquakes();
-
-
-  // Actualizar aproximadamente cada minuto
-  setInterval(
-    loadEarthquakes,
-    60000
-  );
-
-</script>
-
+    setInterval(loadEarthquakes, 60000);
+  </script>
 </body>
-      </html>
+</html>
